@@ -1,0 +1,80 @@
+#! /bin/sh
+
+HELP="This script blacklists all ieee1394 based devices and restarts services\n
+to prevent DMA attacks. It's almost pointless, it's just a thing that emits\n
+the rules with less typing. There's also a little daemon like thing you can \n
+probably get to block firewire as soon as the screen saver comes on.\n
+\n
+usage:\n
+\t	./fireblock < block || b > = Block all new USB Human Interface Devices\n
+\t	./fireblock < unblock || u > = Unblock new USB Human Interface Devices\n
+
+file location:\n
+\t 	/etc/modprobe.d/blacklist-firewire.conf
+
+rule contents(blacklist-firewire.conf):
+\t	blacklist ohci1394
+\t	blacklist sbp2
+\t	blacklist dv1394
+\t	blacklist raw1394
+\t	blacklist video1394
+\t	blacklist firewire-ohci
+\t	blacklist firewire-sbp2
+"
+
+block () {
+	echo "blacklist ohci1394
+	blacklist sbp2
+	blacklist dv1394
+	blacklist raw1394
+	blacklist video1394
+	blacklist firewire-ohci
+	blacklist firewire-sbp2" | sudo tee /etc/modprobe.d/blacklist-firewire.conf
+	sudo update-initramfs -k all -u
+}
+
+#Disable USB FIRE Blocking rules(Unblock new USB FIRE's)
+unblock () {
+	rm /etc/modprobe.d/blacklist-firewire.conf
+}
+
+if [ "$1" = "unblock" ]; then
+	unblock
+elif [ "$1" = "block" ]; then
+	block
+elif [ "$1" = "b" ]; then
+        block
+elif [ "$1" = "u" ]; then
+        unblock
+else
+	echo -e $HELP
+fi
+
+# You can use this function to watch for your screensaver state to change and
+# enable fireblock blocking when it goes blank or locks, and unblocks it when you
+# unlock the screensaver. This is to prevent BadUSB attacks being used to pilfer
+# encryption keys when an attacker has local access by posing as human 
+# interfaces. You can source this into .profile and call the function there to
+# have it start automatically.
+
+fireblock_watch_xscreensaver(){
+    if [ -f "/usr/bin/srm" ]; then
+        alias rm=srm
+    fi
+    FIREBLOCK_XSCREEN_UNLOCK="true"
+    if [ -f /etc/fireblockrc ]; then
+        . /etc/fireblockrc
+    fi
+    mkdir -p "$HOME/.config/fireblock/tmp"
+    echo true > "$HOME/.config/fireblock/tmp/firewatch"
+    while $(<"$HOME/.config/fireblock/tmp/firewatch"); do
+        FIREWATCH_XSCREEN=$(<"$HOME/.config/fireblock/tmp/firewatch")
+        case "`xscreensaver-command -time | egrep -o ' blanked|non-blanked|locked'`" in
+            "blanked")     [ $LAST != "blank" ] && block && LAST="blank" ;;
+            "non-blanked")  [ $LAST != "unblank" ] && [ $FIREBLOCK_XSCREEN_UNLOCK == "true"] && unblock && LAST="unblank" ;;
+            "locked")       [ $LAST != "lock" ] && block && LAST="lock" ;;
+        esac
+    sleep 5
+    done
+    echo false > "$HOME/.config/fireblock/tmp/firewatch"
+}
