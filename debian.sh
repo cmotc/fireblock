@@ -1,12 +1,12 @@
 #! /bin/sh
 # Configure your paths and filenames
 SOURCEBINPATH=.
-SOURCEBIN=hidblock
+SOURCEBIN=fireblock
 SOURCEDOC=README.md
-DEBFOLDER=../hidblock
+DEBFOLDER=../fireblock
 DEBVERSION=0.1
 
-cd hidblock 
+cd fireblock 
 
 git pull origin master
 
@@ -32,7 +32,7 @@ mv debian/rules.new debian/rules
 # debian/install must contain the list of scripts to install 
 # as well as the target directory
 echo $SOURCEBIN usr/bin > debian/install 
-echo $SOURCEDOC usr/share/doc/hidblock >> debian/install
+echo $SOURCEDOC usr/share/doc/fireblock >> debian/install
 
 # Remove the example files
 rm debian/*.ex
