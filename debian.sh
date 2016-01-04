@@ -4,7 +4,7 @@ SOURCEBINPATH=.
 SOURCEBIN=fireblock
 SOURCEDOC=README.md
 DEBFOLDER=fireblock
-DEBVERSION=0.1
+DEBVERSION=$(date +%Y%m%d)
 
 cd fireblock 
 
