@@ -6,7 +6,7 @@ SOURCEDOC=README.md
 DEBFOLDER=fireblock
 DEBVERSION=$(date +%Y%m%d)
 
-cd fireblock 
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 git pull origin master
 
